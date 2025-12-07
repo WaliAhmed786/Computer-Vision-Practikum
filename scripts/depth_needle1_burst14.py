@@ -9,7 +9,7 @@ DA_ROOT = PROJECT_ROOT / "Depth-Anything-V2"
 CKPT_PATH = DA_ROOT / "checkpoints" / "depth_anything_v2_vits.pth"
 
 sys.path.append(str(DA_ROOT))
-from depth_anything_v2.dpt import DepthAnythingV2  # type: ignore
+from depth_anything_v2.dpt import DepthAnythingV2
 
 
 def load_model(device: str = "cpu"):

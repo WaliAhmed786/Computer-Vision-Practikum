@@ -78,14 +78,14 @@ def process_stack(set_name: str, lens: str, photo: str):
             continue
         rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
 
-        # Focus map
+
         fm = focus_map_laplacian(rgb)
 
-        # Focus score
+
         s = focus_score(fm, top_percent=0.10)
         score_rows.append((p.name, s))
 
-        # Save focus map + overlay (like before)
+
         fm_u8 = (fm * 255).astype(np.uint8)
         heat = cv2.applyColorMap(fm_u8, cv2.COLORMAP_JET)
         heat_rgb = cv2.cvtColor(heat, cv2.COLOR_BGR2RGB)
@@ -98,7 +98,7 @@ def process_stack(set_name: str, lens: str, photo: str):
             cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR),
         )
 
-        # Focus point
+
         x_focus, y_focus, region_area = compute_focus_point(fm, top_percent=0.10)
         point_rows.append({
             "image": p.name,
@@ -108,22 +108,22 @@ def process_stack(set_name: str, lens: str, photo: str):
             "region_area": region_area,
         })
 
-        # Save overlay with focus point
+
         overlay_fp = rgb.copy()
         cv2.circle(
             overlay_fp,
             (int(round(x_focus)), int(round(y_focus))),
             10,
-            (255, 0, 0),  # red
+            (255, 0, 0), 
             thickness=2,
         )
         overlay_fp_bgr = cv2.cvtColor(overlay_fp, cv2.COLOR_RGB2BGR)
         cv2.imwrite(str(out_dir / f"{base}_focuspoint.jpg"), overlay_fp_bgr)
 
-    # Sort scores (highest = sharpest)
+
     score_rows.sort(key=lambda x: x[1], reverse=True)
 
-    # Save scores CSV
+
     scores_csv = out_dir / "focus_scores.csv"
     with open(scores_csv, "w", newline="") as f:
         w = csv.writer(f)
@@ -131,7 +131,7 @@ def process_stack(set_name: str, lens: str, photo: str):
         for name, s in score_rows:
             w.writerow([name, f"{s:.6f}"])
 
-    # Save focus points CSV
+
     points_csv = out_dir / "focus_points.csv"
     with open(points_csv, "w", newline="") as f:
         writer = csv.DictWriter(
@@ -168,7 +168,7 @@ def main():
         rows = list(reader)
 
     print("Total rows:", len(rows))
-    # Here all are train, but we filter anyway for clarity
+
     train_rows = [r for r in rows if r.get("set") == "train"]
     print("Train rows:", len(train_rows))
 

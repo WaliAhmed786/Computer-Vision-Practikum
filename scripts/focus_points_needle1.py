@@ -3,7 +3,6 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-# Paths for the needle1 scene
 PROJECT_ROOT = Path.home() / "focuszoom"
 JPG_DIR = PROJECT_ROOT / "data" / "dataset" / "train" / "olympus_macro_lens" / "needle1" / "jpg"
 OUT_DIR = PROJECT_ROOT / "outputs" / "focus_needle1"
@@ -16,7 +15,7 @@ def focus_map_laplacian(rgb):
     L = cv2.Laplacian(gray, cv2.CV_32F, ksize=3)
     fm = (L - L.mean())**2
     fm = cv2.normalize(fm, None, 0, 1.0, cv2.NORM_MINMAX)
-    return fm  # float32 in [0,1]
+    return fm
 
 
 def compute_focus_point(fm, top_percent=0.10):
@@ -32,13 +31,13 @@ def compute_focus_point(fm, top_percent=0.10):
     sorted_vals = np.sort(flat)
 
     k = max(1, int(len(sorted_vals) * top_percent))
-    thr = sorted_vals[-k]  # threshold at top k%
+    thr = sorted_vals[-k]
 
     mask = fm >= thr
     idx_y, idx_x = np.where(mask)
 
     if len(idx_x) == 0:
-        # fallback: no strong peak, return image center
+
         return w / 2.0, h / 2.0, 0
 
     x_mean = float(idx_x.mean())
@@ -73,13 +72,13 @@ def main():
 
         rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
 
-        # 1) compute focus map
+
         fm = focus_map_laplacian(rgb)
 
-        # 2) compute focus point
+
         x_focus, y_focus, region_area = compute_focus_point(fm, top_percent=0.10)
 
-        # 3) compute a simple focus score (mean of top 10%, same idea as before)
+
         flat = np.sort(fm.flatten())
         k = max(1, int(0.10 * len(flat)))
         focus_score = float(flat[-k:].mean())
@@ -92,20 +91,20 @@ def main():
             "region_area": region_area,
         })
 
-        # Optional: save overlay with focus point marked as a red circle
+
         overlay = rgb.copy()
         cv2.circle(
             overlay,
             (int(round(x_focus)), int(round(y_focus))),
             10,
-            (255, 0, 0),  # red in RGB
+            (255, 0, 0),
             thickness=2,
         )
         overlay_bgr = cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR)
         out_img_path = OUT_DIR / f"{p.stem}_focuspoint.jpg"
         cv2.imwrite(str(out_img_path), overlay_bgr)
 
-    # Save CSV with all focus points
+
     with open(POINTS_CSV, "w", newline="") as f:
         writer = csv.DictWriter(
             f,

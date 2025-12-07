@@ -11,7 +11,7 @@ def main():
         print("ERROR: dataset.csv not found!")
         return
 
-    # NOTE: encoding="utf-8-sig" strips BOM so first column becomes "set", not "\ufeffset"
+
     with open(DATASET_CSV, "r", newline="", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f, delimiter=";")
         rows = list(reader)
@@ -26,7 +26,7 @@ def main():
     for r in rows[:5]:
         print(" ", r)
 
-    # Count how many in each set (train/test)
+
     split_counts = {}
     for r in rows:
         split = r.get("set", "unknown")

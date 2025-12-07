@@ -13,13 +13,13 @@ def main():
         print("ERROR: DATA_DIR does not exist!")
         return
 
-    # List first 10 files in the folder
+
     files = list(DATA_DIR.iterdir())
     print(f"Found {len(files)} files in DATA_DIR.")
     for f in files[:10]:
         print(" -", f.name)
 
-    # Try to find a RAW-like or TIFF file
+
     candidates = [f for f in files if f.suffix.lower() in [".dng", ".nef", ".cr2", ".arw", ".tif", ".tiff", ".rw2"]]
     print(f"Found {len(candidates)} RAW/TIFF candidates.")
 
@@ -33,7 +33,6 @@ def main():
     outdir = Path.home() / "focuszoom" / "outputs" / "samples"
     outdir.mkdir(parents=True, exist_ok=True)
 
-    # If it's a true RAW, use rawpy; if it's tiff, OpenCV can read it
     if first.suffix.lower() in [".dng", ".nef", ".cr2", ".arw", ".rw2"]:
         print("Detected real RAW format, using rawpy...")
         with rawpy.imread(str(first)) as raw:

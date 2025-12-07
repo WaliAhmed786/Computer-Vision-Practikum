@@ -4,14 +4,12 @@ import numpy as np
 import torch
 import sys
 
-# Paths
 PROJECT_ROOT = Path.home() / "focuszoom"
 DA_ROOT = PROJECT_ROOT / "Depth-Anything-V2"
 CKPT_PATH = DA_ROOT / "checkpoints" / "depth_anything_v2_vits.pth"
 
-# Make Depth-Anything-V2 importable
 sys.path.append(str(DA_ROOT))
-from depth_anything_v2.dpt import DepthAnythingV2  # type: ignore
+from depth_anything_v2.dpt import DepthAnythingV2
 
 
 def load_model(device: str = "cpu"):
@@ -49,7 +47,7 @@ def save_depth(depth: np.ndarray, out_npy: Path, out_png: Path):
 
 
 def main():
-    # Choose device
+
     device = (
         "cuda"
         if torch.cuda.is_available()
@@ -61,7 +59,7 @@ def main():
 
     model = load_model(device=device)
 
-    # Input: stacked image from focus-stack
+
     img_path = PROJECT_ROOT / "outputs" / "stacked" / "needle1" / "needle1_stacked.jpg"
     out_dir = PROJECT_ROOT / "outputs" / "depth_needle1"
     out_npy = out_dir / "needle1_stacked_da_depth.npy"

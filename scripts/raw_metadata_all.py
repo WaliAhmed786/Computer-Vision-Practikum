@@ -108,7 +108,7 @@ def main():
                 print("      WARNING: no metadata returned")
                 continue
 
-            # add context (which stack this RAW belongs to)
+
             md["set"] = set_name
             md["lens"] = lens
             md["photo"] = photo
@@ -119,7 +119,7 @@ def main():
         print("No metadata extracted for any stack.")
         return
 
-    # Use keys from first row as CSV columns + make sure context columns are present
+
     fieldnames = [
         "set",
         "lens",

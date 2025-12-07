@@ -5,32 +5,26 @@ import numpy as np
 import torch
 import sys
 
-# --------------------- Paths --------------------- #
 PROJECT_ROOT = Path.home() / "focuszoom"
 DA_ROOT = PROJECT_ROOT / "Depth-Anything-V2"
 
-# make sure Python can import the Depth-Anything-V2 package
 sys.path.append(str(DA_ROOT))
 
-from depth_anything_v2.dpt import DepthAnythingV2  # from the repo
+from depth_anything_v2.dpt import DepthAnythingV2
 
-# your data & output paths
 JPG_DIR = PROJECT_ROOT / "data" / "dataset" / "train" / "olympus_macro_lens" / "needle1" / "jpg"
 SCORES_CSV = PROJECT_ROOT / "outputs" / "focus_needle1" / "focus_scores.csv"
 OUT_DIR = PROJECT_ROOT / "outputs" / "depth_needle1"
 
-# checkpoint you downloaded
 CKPT_PATH = DA_ROOT / "checkpoints" / "depth_anything_v2_vits.pth"
 
-# ----------------- Model config (official) ----------------- #
-# from the Depth-Anything-V2 README for encoder "vits"
 model_configs = {
     "vits": {"encoder": "vits", "features": 64,  "out_channels": [48, 96, 192, 384]},
     "vitb": {"encoder": "vitb", "features": 128, "out_channels": [96, 192, 384, 768]},
     "vitl": {"encoder": "vitl", "features": 256, "out_channels": [256, 512, 1024, 1024]},
     "vitg": {"encoder": "vitg", "features": 384, "out_channels": [1536, 1536, 1536, 1536]},
 }
-ENCODER_KEY = "vits"  # because we use depth_anything_v2_vits.pth
+ENCODER_KEY = "vits"
 
 
 def load_model():
@@ -54,7 +48,7 @@ def infer_depth(model, bgr_image: np.ndarray) -> np.ndarray:
     Returns a HxW float32 depth map (numpy array).
     """
     with torch.no_grad():
-        depth = model.infer_image(bgr_image)  # HxW numpy (float32)
+        depth = model.infer_image(bgr_image)
     depth = depth.astype(np.float32)
     return depth
 
@@ -66,7 +60,7 @@ def main(top_n: int = 3):
         print("ERROR: scores CSV not found.")
         return
 
-    # 1) Read and sort scores (highest focus_score first)
+
     rows = []
     with open(SCORES_CSV, "r") as f:
         reader = csv.DictReader(f)
@@ -86,10 +80,8 @@ def main(top_n: int = 3):
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    # 2) Load model once (CPU only for now)
     model = load_model()
 
-    # 3) Process top-N sharp images
     for name, score in rows[:top_n]:
         img_path = JPG_DIR / name
         print("\nProcessing image:", img_path)
@@ -99,16 +91,14 @@ def main(top_n: int = 3):
             print("  ERROR: cannot read image, skipping.")
             continue
 
-        # run real depth model
         depth = infer_depth(model, bgr)
 
-        # save depth as .npy
         base = img_path.stem
         npy_path = OUT_DIR / f"{base}_depth.npy"
         np.save(str(npy_path), depth)
         print("  Saved depth npy to:", npy_path)
 
-        # normalize for visualization and save as PNG
+
         d_min, d_max = float(depth.min()), float(depth.max())
         if d_max - d_min < 1e-8:
             d_norm = np.zeros_like(depth, dtype=np.float32)

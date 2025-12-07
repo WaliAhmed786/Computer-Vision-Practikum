@@ -12,12 +12,10 @@ DATASET_CSV = PROJECT_ROOT / "data" / "dataset" / "dataset.csv"
 DA_ROOT = PROJECT_ROOT / "Depth-Anything-V2"
 CKPT_PATH = DA_ROOT / "checkpoints" / "depth_anything_v2_vits.pth"
 
-# make Depth-Anything-V2 importable
 sys.path.append(str(DA_ROOT))
-from depth_anything_v2.dpt import DepthAnythingV2  # type: ignore
+from depth_anything_v2.dpt import DepthAnythingV2
 
 
-# ------------------ MODEL LOADING ------------------
 
 
 def load_model(device: str = "cpu"):
@@ -36,7 +34,7 @@ def load_model(device: str = "cpu"):
         },
     }
 
-    encoder = "vits"  # we use the small vits checkpoint
+    encoder = "vits"
     model = DepthAnythingV2(**model_configs[encoder])
     state = torch.load(str(CKPT_PATH), map_location=device)
     model.load_state_dict(state)
@@ -44,7 +42,6 @@ def load_model(device: str = "cpu"):
     return model
 
 
-# ------------------ SAVE DEPTH HELPERS ------------------
 
 
 def save_depth(depth: np.ndarray, out_npy: Path, out_png: Path):
@@ -66,7 +63,6 @@ def save_depth(depth: np.ndarray, out_npy: Path, out_png: Path):
     cv2.imwrite(str(out_png), depth_color)
 
 
-# ------------------ FOCUS SCORES -> SHARP + BLURRIEST ------------------
 
 
 def get_top_and_bottom_frames(photo: str, n_top: int = 3, n_bottom: int = 3):
@@ -95,7 +91,7 @@ def get_top_and_bottom_frames(photo: str, n_top: int = 3, n_bottom: int = 3):
         print(f"  [SKIP] No rows in {scores_csv}")
         return [], []
 
-    # sort descending by score (sharpest first)
+
     rows.sort(key=lambda x: x[1], reverse=True)
 
     top_frames = [name for name, _ in rows[:n_top]]
@@ -106,7 +102,6 @@ def get_top_and_bottom_frames(photo: str, n_top: int = 3, n_bottom: int = 3):
     return top_frames, bottom_frames
 
 
-# ------------------ FIND HELICON IMAGE ------------------
 
 
 def find_helicon_image(base_dir: Path):
@@ -129,7 +124,6 @@ def find_helicon_image(base_dir: Path):
     return None
 
 
-# ------------------ PROCESS ONE STACK ------------------
 
 
 def process_stack(model, device: str, set_name: str, lens: str, photo: str):
@@ -145,15 +139,13 @@ def process_stack(model, device: str, set_name: str, lens: str, photo: str):
 
     print(f"\nProcessing depth for stack: set={set_name}, lens={lens}, photo={photo}")
 
-    # 1) get top-3 sharpest + bottom-3 blurriest
     top_frames, bottom_frames = get_top_and_bottom_frames(photo, n_top=3, n_bottom=3)
-    # combine, but avoid duplicates (in case stack is tiny)
     all_frames = []
     for name in top_frames + bottom_frames:
         if name not in all_frames:
             all_frames.append(name)
 
-    # 2) depth for those frames
+
     for img_name in all_frames:
         img_path = jpg_dir / img_name
         if not img_path.exists():
@@ -178,7 +170,7 @@ def process_stack(model, device: str, set_name: str, lens: str, photo: str):
         save_depth(depth, out_npy, out_png)
         print("    Saved depth to:", out_png)
 
-    # 3) depth for all-in-focus helicon image, if available
+
     helicon_path = find_helicon_image(base_dir)
     if helicon_path is not None:
         out_npy = out_dir / "helicon_focus_depth.npy"
@@ -199,7 +191,6 @@ def process_stack(model, device: str, set_name: str, lens: str, photo: str):
         print("  No helicon_focus*.jpg found for this stack.")
 
 
-# ------------------ MAIN ------------------
 
 
 def main():

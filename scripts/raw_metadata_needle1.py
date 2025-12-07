@@ -15,7 +15,7 @@ def exiftool_metadata(raw_path: Path):
     Call exiftool on a single RAW file and return a dict with selected fields.
     Uses JSON output for easier parsing.
     """
-    # Tags we care about (you can add more later)
+
     tags = [
         "Make",
         "Model",
@@ -45,12 +45,12 @@ def exiftool_metadata(raw_path: Path):
         data_list = json.loads(result.stdout)
         if not data_list:
             return None
-        data = data_list[0]  # exiftool -j returns a list with one dict per file
+        data = data_list[0]
     except json.JSONDecodeError as e:
         print(f"  JSON parse error for {raw_path.name}: {e}")
         return None
 
-    # Normalize keys we want
+
     md = {
         "raw_file": raw_path.name,
         "cam_make": data.get("Make"),

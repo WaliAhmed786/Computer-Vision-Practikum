@@ -6,20 +6,15 @@ import cv2
 import numpy as np
 import torch
 
-# --- Paths ---
-
 PROJECT_ROOT = Path.home() / "focuszoom"
 DATASET_CSV = PROJECT_ROOT / "data" / "dataset" / "dataset.csv"
 DA_ROOT = PROJECT_ROOT / "Depth-Anything-V2"
 CKPT_PATH = DA_ROOT / "checkpoints" / "depth_anything_v2_vits.pth"
 
-# --- DepthAnythingV2 setup (from official README) ---
-
 import sys
 sys.path.append(str(DA_ROOT))
 
-from depth_anything_v2.dpt import DepthAnythingV2  # type: ignore
-
+from depth_anything_v2.dpt import DepthAnythingV2
 
 def load_model(device: str = "cpu"):
     print("Loading DepthAnythingV2 model from:", CKPT_PATH)
@@ -37,15 +32,13 @@ def load_model(device: str = "cpu"):
         },
     }
 
-    encoder = "vits"  # we have depth_anything_v2_vits.pth
+    encoder = "vits"
     model = DepthAnythingV2(**model_configs[encoder])
     state = torch.load(str(CKPT_PATH), map_location=device)
     model.load_state_dict(state)
     model = model.to(device).eval()
     return model
 
-
-# --- Utility: save depth as npy + color PNG ---
 
 
 def save_depth(depth: np.ndarray, out_npy: Path, out_png: Path):
@@ -55,7 +48,7 @@ def save_depth(depth: np.ndarray, out_npy: Path, out_png: Path):
     out_npy.parent.mkdir(parents=True, exist_ok=True)
     np.save(str(out_npy), depth)
 
-    # normalize for visualization
+
     d_min = float(depth.min())
     d_max = float(depth.max())
     if d_max - d_min < 1e-8:
@@ -68,7 +61,6 @@ def save_depth(depth: np.ndarray, out_npy: Path, out_png: Path):
     cv2.imwrite(str(out_png), depth_color)
 
 
-# --- Read top-N sharp frames from focus_scores.csv ---
 
 
 def get_top_n_frames(photo: str, n: int = 3):
@@ -98,7 +90,6 @@ def get_top_n_frames(photo: str, n: int = 3):
     return top
 
 
-# --- Find helicon (all-in-focus) image in a stack ---
 
 
 def find_helicon_image(base_dir: Path):
@@ -118,11 +109,9 @@ def find_helicon_image(base_dir: Path):
         if p.exists():
             return p
 
-    # sometimes inside 'aligned' or other folder – we keep it simple for now
+
     return None
 
-
-# --- Process one stack (one row from dataset.csv) ---
 
 
 def process_stack(model, device: str, set_name: str, lens: str, photo: str):
@@ -138,7 +127,7 @@ def process_stack(model, device: str, set_name: str, lens: str, photo: str):
 
     print(f"Processing depth for stack: set={set_name}, lens={lens}, photo={photo}")
 
-    # 1) depth for top-N sharp frames
+
     top_frames = get_top_n_frames(photo, n=3)
     for img_name in top_frames:
         img_path = jpg_dir / img_name
@@ -152,8 +141,8 @@ def process_stack(model, device: str, set_name: str, lens: str, photo: str):
             print("    [WARN] could not read image, skipping.")
             continue
 
-        # DepthAnythingV2 uses raw BGR / RGB; README example uses cv2.imread
-        depth = model.infer_image(bgr)  # HxW numpy array
+
+        depth = model.infer_image(bgr)
 
         stem = os.path.splitext(img_name)[0]
         out_npy = out_dir / f"{stem}_depth.npy"
@@ -161,7 +150,7 @@ def process_stack(model, device: str, set_name: str, lens: str, photo: str):
         save_depth(depth, out_npy, out_png)
         print("    Saved depth to:", out_png)
 
-    # 2) depth for all-in-focus helicon image, if available
+
     helicon_path = find_helicon_image(base_dir)
     if helicon_path is not None:
         print("  Depth for all-in-focus (helicon):", helicon_path.name)
@@ -180,7 +169,6 @@ def process_stack(model, device: str, set_name: str, lens: str, photo: str):
     print()
 
 
-# --- Main ---
 
 
 def main():
@@ -208,7 +196,6 @@ def main():
 
     model = load_model(device=device)
 
-    # In your dataset, all rows are 'train', but keep filter for clarity
     for r in rows:
         set_name = r["set"]
         if set_name not in ("train", "test"):

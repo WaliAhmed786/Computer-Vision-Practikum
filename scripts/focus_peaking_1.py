@@ -11,13 +11,13 @@ def focus_map_laplacian(rgb):
     gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
     gray = cv2.GaussianBlur(gray, (3, 3), 0)
     L = cv2.Laplacian(gray, cv2.CV_32F, ksize=3)
-    fm = (L - L.mean())**2        # focus energy
+    fm = (L - L.mean())**2
     fm = cv2.normalize(fm, None, 0, 1.0, cv2.NORM_MINMAX)
     return fm
 
 def focus_score(fm):
     flat = np.sort(fm.flatten())
-    k = max(1, int(0.10 * len(flat)))  # top 10%
+    k = max(1, int(0.10 * len(flat)))
     return float(flat[-k:].mean())
 
 def main():
@@ -50,7 +50,7 @@ def main():
         s = focus_score(fm)
         scores.append((p.name, s))
 
-        # save focus map and overlay
+
         fm_u8 = (fm * 255).astype(np.uint8)
         heat = cv2.applyColorMap(fm_u8, cv2.COLORMAP_JET)
         heat_rgb = cv2.cvtColor(heat, cv2.COLOR_BGR2RGB)
@@ -61,10 +61,10 @@ def main():
         cv2.imwrite(str(overlays_dir / f"{base}_overlay.jpg"),
                     cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR))
 
-    # sort images by focus score (highest = sharpest)
+
     scores.sort(key=lambda x: x[1], reverse=True)
 
-    # save CSV
+
     csv_path = OUT_DIR / "focus_scores.csv"
     with open(csv_path, "w", newline="") as f:
         w = csv.writer(f)

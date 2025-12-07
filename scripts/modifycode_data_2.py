@@ -12,11 +12,11 @@ def main():
         print("ERROR: Folder does not exist.")
         return
 
-    # list all files in this folder
+
     files = list(DATA_DIR.iterdir())
     print("Total files in folder:", len(files))
 
-    # keep only RAW-like extensions (including .rw2)
+
     exts = [".rw2", ".dng", ".nef", ".cr2", ".arw", ".tif", ".tiff"]
     raws = [f for f in files if f.suffix.lower() in exts]
 
@@ -28,7 +28,7 @@ def main():
     first = raws[0]
     print("Reading file:", first.name)
 
-    # read RAW with rawpy
+
     with rawpy.imread(str(first)) as raw:
         rgb16 = raw.postprocess(
             use_camera_wb=True,

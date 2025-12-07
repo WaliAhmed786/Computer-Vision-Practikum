@@ -8,9 +8,8 @@ PROJECT_ROOT = Path.home() / "focuszoom"
 DA_ROOT = PROJECT_ROOT / "Depth-Anything-V2"
 CKPT_PATH = DA_ROOT / "checkpoints" / "depth_anything_v2_vits.pth"
 
-# Make Depth-Anything-V2 importable
 sys.path.append(str(DA_ROOT))
-from depth_anything_v2.dpt import DepthAnythingV2  # type: ignore
+from depth_anything_v2.dpt import DepthAnythingV2
 
 
 def load_model(device: str = "cpu"):
@@ -51,7 +50,7 @@ def main():
         print("Example: python depth_stacked_da.py needle1")
         return
 
-    scene = sys.argv[1]  # e.g. "needle1", "orange_pulp", "coin1", "flower1"
+    scene = sys.argv[1]
 
     device = (
         "cuda"
